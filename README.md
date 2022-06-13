@@ -7,33 +7,38 @@ package main
 
 import (
 	"fmt"
-	"github.com/mhewedy/ews"
-	"github.com/mhewedy/ews/ewsutil"
 	"log"
+
+	ews "github.com/gunsluo/goews"
 )
 
 func main() {
-
-	c := ews.NewClient(
-		"https://outlook.office365.com/EWS/Exchange.asmx",
-		"email@exchangedomain",
-		"password",
-		&ews.Config{Dump: true, NTLM: false},
+	c, err := ews.NewClient(
+		ews.Config{
+			Address:  "https://outlook.office365.com/EWS/Exchange.asmx",
+			Username: "email@exchangedomain",
+			Password: "password",
+			Dump:     true,
+			NTLM:     false,
+			SkipTLS:  false,
+		},
 	)
+	if err != nil {
+		log.Fatal("->: ", err.Error())
+	}
 
-	err := ewsutil.SendEmail(c,
+	err = c.SendEmail(
+		"email@exchangedomain",
 		[]string{"mhewedy@gmail.com", "someone@else.com"},
 		"An email subject",
 		"The email body, as plain text",
 	)
-
 	if err != nil {
 		log.Fatal("err>: ", err.Error())
 	}
 
 	fmt.Println("--- success ---")
 }
-
 ```
 > Note: if you are using an on-premises Exchange server (or even if you manage your servers at the cloud), you need to pass the username as `AD_DOMAINNAME\username` instead, for examle `MYCOMANY\mhewedy`.
 
@@ -71,14 +76,14 @@ func main() {
 
 ### Extras
 Besides the operations supported above, few new operations under the namespace `ewsutil` has been introduced:
-* `ewsutil.SendEmail` 
-* `ewsutil.CreateEvent`
-* `ewsutil.ListUsersEvents`
-* `ewsutil.FindPeople`
-* `ewsutil.GetUserPhoto`
-* `ewsutil.GetUserPhotoBase64`
-* `ewsutil.GetUserPhotoURL`
-* `ewsutil.GetPersona`
+* `client.SendEmail` 
+* `client.CreateEvent`
+* `client.ListUsersEvents`
+* `client.FindPeople`
+* `client.GetUserPhoto`
+* `client.GetUserPhotoBase64`
+* `client.GetUserPhotoURL`
+* `client.GetPersona`
 
 NTLM is supported as well as Basic authentication
 
