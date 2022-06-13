@@ -1,8 +1,6 @@
 package ews
 
 import (
-	"encoding/xml"
-	"errors"
 	"time"
 )
 
@@ -193,44 +191,13 @@ type getUserAvailabilityResponseBody struct {
 	GetUserAvailabilityResponse GetUserAvailabilityResponse `xml:"GetUserAvailabilityResponse"`
 }
 
-// GetUserAvailability
-//https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/getuseravailability-operation
-func GetUserAvailability(c Client, r *GetUserAvailabilityRequest) (*GetUserAvailabilityResponse, error) {
-
-	xmlBytes, err := xml.MarshalIndent(r, "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	bb, err := c.SendAndReceive(xmlBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	var soapResp getUserAvailabilityResponseEnvelop
-	err = xml.Unmarshal(bb, &soapResp)
-	if err != nil {
-		return nil, err
-	}
-
-	resp := soapResp.Body.GetUserAvailabilityResponse
-
-	err = checkForFunctionalError(&resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
+type EventUser struct {
+	Email        string
+	AttendeeType AttendeeType
 }
 
-func checkForFunctionalError(resp *GetUserAvailabilityResponse) error {
-
-	if len(resp.FreeBusyResponseArray.FreeBusyResponse) > 0 {
-		for _, rr := range resp.FreeBusyResponseArray.FreeBusyResponse {
-			if rr.ResponseMessage.ResponseClass == ResponseClassError {
-				return errors.New(rr.ResponseMessage.MessageText)
-			}
-		}
-	}
-	return nil
+type Event struct {
+	Start    time.Time
+	End      time.Time
+	BusyType BusyType
 }

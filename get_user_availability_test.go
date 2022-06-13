@@ -2,10 +2,11 @@ package ews
 
 import (
 	"encoding/xml"
-	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_marshal_GetUserAvailabilityRequest(t *testing.T) {
