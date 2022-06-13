@@ -1,4 +1,4 @@
-package ews
+package goews
 
 type GetUserPhotoRequest struct {
 	XMLName       struct{} `xml:"m:GetUserPhoto"`

@@ -1,4 +1,4 @@
-package ews
+package goews
 
 type GetPersonaRequest struct {
 	XMLName   struct{}  `xml:"m:GetPersona"`

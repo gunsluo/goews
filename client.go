@@ -1,4 +1,4 @@
-package ews
+package goews
 
 import (
 	"bytes"

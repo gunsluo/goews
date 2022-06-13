@@ -1,4 +1,4 @@
-module github.com/gunsluo/goews
+module github.com/gunsluo/goews/v2
 
 go 1.18
 

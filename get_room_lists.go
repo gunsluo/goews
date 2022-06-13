@@ -1,4 +1,4 @@
-package ews
+package goews
 
 type GetRoomListsRequest struct {
 	XMLName struct{} `xml:"m:GetRoomLists"`
