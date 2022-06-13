@@ -9,12 +9,12 @@ import (
 	"fmt"
 	"log"
 
-	ews "github.com/gunsluo/goews"
+	"github.com/gunsluo/goews/v2"
 )
 
 func main() {
-	c, err := ews.NewClient(
-		ews.Config{
+	c, err := goews.NewClient(
+		goews.Config{
 			Address:  "https://outlook.office365.com/EWS/Exchange.asmx",
 			Username: "email@exchangedomain",
 			Password: "password",
