@@ -1,8 +1,6 @@
 package ews
 
 import (
-	"encoding/xml"
-	"errors"
 	"time"
 )
 
@@ -85,71 +83,4 @@ type CreateItemResponse struct {
 
 type ResponseMessages struct {
 	CreateItemResponseMessage Response `xml:"CreateItemResponseMessage"`
-}
-
-// CreateMessageItem
-// https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/createitem-operation-email-message
-func CreateMessageItem(c Client, m ...Message) error {
-
-	item := &CreateItem{
-		MessageDisposition: "SendAndSaveCopy",
-		SavedItemFolderId:  SavedItemFolderId{DistinguishedFolderId{Id: "sentitems"}},
-	}
-	item.Items.Message = append(item.Items.Message, m...)
-
-	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	bb, err := c.SendAndReceive(xmlBytes)
-	if err != nil {
-		return err
-	}
-
-	if err := checkCreateItemResponseForErrors(bb); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// CreateCalendarItem
-// https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/createitem-operation-calendar-item
-func CreateCalendarItem(c Client, ci ...CalendarItem) error {
-
-	item := &CreateItem{
-		SendMeetingInvitations: "SendToAllAndSaveCopy",
-		SavedItemFolderId:      SavedItemFolderId{DistinguishedFolderId{Id: "calendar"}},
-	}
-	item.Items.CalendarItem = append(item.Items.CalendarItem, ci...)
-
-	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	bb, err := c.SendAndReceive(xmlBytes)
-	if err != nil {
-		return err
-	}
-
-	if err := checkCreateItemResponseForErrors(bb); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func checkCreateItemResponseForErrors(bb []byte) error {
-	var soapResp createItemResponseBodyEnvelop
-	if err := xml.Unmarshal(bb, &soapResp); err != nil {
-		return err
-	}
-
-	resp := soapResp.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage
-	if resp.ResponseClass == ResponseClassError {
-		return errors.New(resp.MessageText)
-	}
-	return nil
 }

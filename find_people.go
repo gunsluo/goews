@@ -1,10 +1,5 @@
 package ews
 
-import (
-	"encoding/xml"
-	"errors"
-)
-
 type BaseShape string
 
 const (
@@ -73,31 +68,4 @@ type FindPeopleResponse struct {
 
 type People struct {
 	Persona []Persona `xml:"Persona"`
-}
-
-// GetUserAvailability
-//https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/findpeople-operation
-func FindPeople(c Client, r *FindPeopleRequest) (*FindPeopleResponse, error) {
-
-	xmlBytes, err := xml.MarshalIndent(r, "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	bb, err := c.SendAndReceive(xmlBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	var soapResp findPeopleResponseEnvelop
-	err = xml.Unmarshal(bb, &soapResp)
-	if err != nil {
-		return nil, err
-	}
-
-	if soapResp.Body.FindPeopleResponse.ResponseClass == ResponseClassError {
-		return nil, errors.New(soapResp.Body.FindPeopleResponse.MessageText)
-	}
-
-	return &soapResp.Body.FindPeopleResponse, nil
 }
