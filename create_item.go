@@ -22,7 +22,7 @@ type SavedItemFolderId struct {
 }
 
 type Message struct {
-	ItemClass    string     `xml:"t:ItemClass"`
+	ItemClass    string     `xml:"t:ItemClass,omitempty"`
 	Subject      string     `xml:"t:Subject"`
 	Body         Body       `xml:"t:Body"`
 	Sender       OneMailbox `xml:"t:Sender"`

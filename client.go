@@ -14,7 +14,7 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/Azure/go-ntlmssp"
+	"github.com/gunsluo/goews/v2/ntlmssp"
 )
 
 const (
@@ -118,10 +118,10 @@ func (c *client) SendAndReceive(body []byte) ([]byte, error) {
 		return nil, err
 	}
 	defer req.Body.Close()
-	logRequest(c, req)
 
 	req.SetBasicAuth(c.config.Username, c.config.Password)
-	req.Header.Set("Content-Type", "text/xml")
+	req.Header.Set("Content-Type", "text/xml; charset=utf-8")
+	logRequest(c, req)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -165,8 +165,8 @@ func logResponse(c *client, resp *http.Response) {
 // SendEmail helper method to send Message
 func (c *client) SendEmail(from string, to []string, subject, body string) error {
 	m := Message{
-		ItemClass: "IPM.Note",
-		Subject:   subject,
+		//ItemClass: "IPM.Note",
+		Subject: subject,
 		Body: Body{
 			BodyType: "Text",
 			Body:     []byte(body),
