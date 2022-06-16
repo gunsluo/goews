@@ -33,7 +33,7 @@ const (
 )
 
 type Client interface {
-	SendEmail(from string, to []string, subject, body string) error
+	SendEmail(SendEmailParams) error
 	CreateHTMLEvent(to, optional []string, subject, body, location string, from time.Time, duration time.Duration) error
 	CreateEvent(to, optional []string, subject, body, location string, from time.Time, duration time.Duration) error
 	GetPersonaById(personaID string) (*Persona, error)
@@ -166,25 +166,65 @@ func logResponse(c *client, resp *http.Response) {
 }
 
 // SendEmail helper method to send Message
-func (c *client) SendEmail(from string, to []string, subject, body string) error {
+func (c *client) SendEmail(param SendEmailParams) error {
 	m := Message{
 		//ItemClass: "IPM.Note",
-		Subject: subject,
+		Subject: param.Subject,
 		Body: Body{
-			BodyType: "Text",
-			Body:     []byte(body),
+			BodyType: param.BodyType,
+			Body:     []byte(param.Body),
 		},
 		Sender: OneMailbox{
 			Mailbox: Mailbox{
-				EmailAddress: from,
+				EmailAddress: param.From,
 			},
 		},
 	}
-	mb := make([]Mailbox, len(to))
-	for i, addr := range to {
+	mb := make([]Mailbox, len(param.To))
+	for i, addr := range param.To {
 		mb[i].EmailAddress = addr
 	}
 	m.ToRecipients.Mailbox = append(m.ToRecipients.Mailbox, mb...)
+
+	if len(param.Cc) > 0 {
+		m.CcRecipients = &XMailbox{}
+		for _, addr := range param.Cc {
+			m.CcRecipients.Mailbox = append(m.CcRecipients.Mailbox,
+				Mailbox{
+					EmailAddress: addr,
+				})
+		}
+	}
+
+	if len(param.Bcc) > 0 {
+		m.BccRecipients = &XMailbox{}
+		for _, addr := range param.Bcc {
+			m.BccRecipients.Mailbox = append(m.BccRecipients.Mailbox,
+				Mailbox{
+					EmailAddress: addr,
+				})
+		}
+	}
+
+	if len(param.FileAttachments) > 0 {
+		m.Attachments = &Attachments{}
+		for _, attachment := range param.FileAttachments {
+			content := base64.StdEncoding.EncodeToString(attachment.Content)
+			m.Attachments.Files = append(m.Attachments.Files,
+				FileAttachment{
+					AttachmentId:     attachment.AttachmentId,
+					Name:             attachment.Name,
+					ContentType:      attachment.ContentType,
+					ContentId:        "",
+					ContentLocation:  "",
+					Size:             attachment.Size,
+					LastModifiedTime: "",
+					IsInline:         false,
+					IsContactPhoto:   false,
+					Content:          content,
+				})
+		}
+	}
 
 	return c.CreateMessageItem(m)
 }

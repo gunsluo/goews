@@ -22,11 +22,14 @@ type SavedItemFolderId struct {
 }
 
 type Message struct {
-	ItemClass    string     `xml:"t:ItemClass,omitempty"`
-	Subject      string     `xml:"t:Subject"`
-	Body         Body       `xml:"t:Body"`
-	Sender       OneMailbox `xml:"t:Sender"`
-	ToRecipients XMailbox   `xml:"t:ToRecipients"`
+	ItemClass     string       `xml:"t:ItemClass,omitempty"`
+	Subject       string       `xml:"t:Subject"`
+	Body          Body         `xml:"t:Body"`
+	Sender        OneMailbox   `xml:"t:Sender"`
+	ToRecipients  XMailbox     `xml:"t:ToRecipients"`
+	CcRecipients  *XMailbox    `xml:"t:CcRecipients,omitempty"`
+	BccRecipients *XMailbox    `xml:"t:BccRecipients,omitempty"`
+	Attachments   *Attachments `xml:"t:Attachments,omitempty"`
 }
 
 type CalendarItem struct {
@@ -83,4 +86,49 @@ type CreateItemResponse struct {
 
 type ResponseMessages struct {
 	CreateItemResponseMessage Response `xml:"CreateItemResponseMessage"`
+}
+
+type Attachments struct {
+	Items []ItemAttachment `xml:"t:ItemAttachment,omitempty"`
+	Files []FileAttachment `xml:"t:FileAttachment,omitempty"`
+}
+
+type ItemAttachment struct {
+	AttachmentId     AttachmentId `xml:"t:AttachmentId,omitempty"`
+	Name             string       `xml:"t:Name"`
+	ContentType      string       `xml:"t:ContentType,omitempty"`
+	ContentId        string       `xml:"t:ContentId,omitempty"`
+	ContentLocation  string       `xml:"t:ContentLocation,omitempty"`
+	Size             int64        `xml:"t:Size,omitempty"`
+	LastModifiedTime string       `xml:"t:LastModifiedTime,omitempty"`
+	IsInline         bool         `xml:"t:IsInline"`
+
+	// TODO:
+	// Item
+	// Message
+	// CalendarItem
+	// Contact
+	// Task
+	// MeetingMessage
+	// MeetingResponse
+	// MeetingCancellation
+}
+
+type FileAttachment struct {
+	AttachmentId     AttachmentId `xml:"t:AttachmentId,omitempty"`
+	Name             string       `xml:"t:Name"`
+	ContentType      string       `xml:"t:ContentType,omitempty"`
+	ContentId        string       `xml:"t:ContentId,omitempty"`
+	ContentLocation  string       `xml:"t:ContentLocation,omitempty"`
+	Size             int64        `xml:"t:Size,omitempty"`
+	LastModifiedTime string       `xml:"t:LastModifiedTime,omitempty"`
+	IsInline         bool         `xml:"t:IsInline"`
+	IsContactPhoto   bool         `xml:"t:IsContactPhoto"`
+	Content          string       `xml:"t:Content"`
+}
+
+type AttachmentId struct {
+	Id                string `xml:"Id,attr"`
+	RootItemId        string `xml:"RootItemId,attr"`
+	RootItemChangeKey string `xml:"RootItemChangeKey,attr"`
 }

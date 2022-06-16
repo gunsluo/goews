@@ -72,12 +72,13 @@ func Test_Client(t *testing.T) {
 }
 
 func testSendEmail(c Client) error {
-	return c.SendEmail(
-		"daziplqa@daziplqa.onmicrosoft.com",
-		[]string{"mhewedy@gmail.com", "someone@else.com"},
-		"An email subject",
-		"The email body, as plain text",
-	)
+	return c.SendEmail(SendEmailParams{
+		From:     "daziplqa@daziplqa.onmicrosoft.com",
+		To:       []string{"mhewedy@gmail.com", "someone@else.com"},
+		Subject:  "An email subject",
+		Body:     "The email body, as plain text",
+		BodyType: BodyTypeText,
+	})
 }
 
 func testListUsersEvents(c Client) error {
