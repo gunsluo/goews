@@ -53,6 +53,7 @@ type Config struct {
 	Username string
 	Password string
 	NTLM     bool
+	Domain   string
 	Dump     bool
 
 	SkipTLS bool
@@ -95,7 +96,10 @@ func NewClient(config Config) (Client, error) {
 	}
 
 	if config.NTLM {
-		httpClient.Transport = ntlmssp.Negotiator{
+		httpClient.Transport = ntlmssp.NtlmTransport{
+			Domain:       config.Domain,
+			User:         config.Username,
+			Password:     config.Password,
 			RoundTripper: transport,
 		}
 	} else {
@@ -119,7 +123,6 @@ func (c *client) SendAndReceive(body []byte) ([]byte, error) {
 	}
 	defer req.Body.Close()
 
-	req.SetBasicAuth(c.config.Username, c.config.Password)
 	req.Header.Set("Content-Type", "text/xml; charset=utf-8")
 	logRequest(c, req)
 
