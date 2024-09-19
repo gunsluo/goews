@@ -1,9 +1,6 @@
 package goews
 
-const (
-	BodyTypeHtml = "HTML"
-	BodyTypeText = "Text"
-)
+import "time"
 
 type SendEmailParams struct {
 	From     string
@@ -23,4 +20,17 @@ type AttachmentParams struct {
 	ContentType  string
 	Size         int64
 	Content      []byte
+}
+
+type GetFolderParams struct {
+	FolderId  string
+	BaseShape BaseShape
+}
+
+type QueryMessageParams struct {
+	FolderId  string
+	StartTime time.Time
+	EndTime   time.Time
+	Limit     int
+	Offset    int
 }

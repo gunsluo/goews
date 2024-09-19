@@ -8,10 +8,11 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"time"
 
 	"github.com/gunsluo/goews/v2/ntlmssp"
@@ -46,6 +47,9 @@ type Client interface {
 	GetRoomLists() (*GetRoomListsResponse, error)
 	ListUsersEvents(eventUsers []EventUser, from time.Time, duration time.Duration) (map[EventUser][]Event, error)
 	SendAndReceive(body []byte) ([]byte, error)
+	GetFolder(GetFolderParams) (*GetFolderResponse, error)
+	FindItem(*FindItem) (*FindItemResponse, error)
+	QueryMessage(QueryMessageParams) ([]Message, error)
 }
 
 type Config struct {
@@ -80,7 +84,7 @@ func NewClient(config Config) (Client, error) {
 	}
 
 	if config.CaPath != "" {
-		caCert, err := ioutil.ReadFile(config.CaPath)
+		caCert, err := os.ReadFile(config.CaPath)
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +141,7 @@ func (c *client) SendAndReceive(body []byte) ([]byte, error) {
 		return nil, NewError(resp)
 	}
 
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +366,7 @@ func (c *client) GetPersonaById(personaID string) (*Persona, error) {
 }
 
 // GetPersona
-//https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/getpersona-operation
+// https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/getpersona-operation
 func (c *client) GetPersona(r *GetPersonaRequest) (*GetPersonaResponse, error) {
 
 	xmlBytes, err := xml.MarshalIndent(r, "", "  ")
@@ -389,7 +393,7 @@ func (c *client) GetPersona(r *GetPersonaRequest) (*GetPersonaResponse, error) {
 }
 
 // GetUserPhoto
-//https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/getuserphoto-operation
+// https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/getuserphoto-operation
 func (c *client) GetUserPhoto(email string) (string, error) {
 	resp, err := c.getUserPhoto(&GetUserPhotoRequest{
 		Email:         email,
@@ -513,7 +517,7 @@ func (c *client) ListUsersEvents(
 	return events, nil
 }
 
-//https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/getuseravailability-operation
+// https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/getuseravailability-operation
 func (c *client) getUserAvailability(r *GetUserAvailabilityRequest) (*GetUserAvailabilityResponse, error) {
 	xmlBytes, err := xml.MarshalIndent(r, "", "  ")
 	if err != nil {
@@ -650,4 +654,118 @@ func (c *client) GetRoomLists() (*GetRoomListsResponse, error) {
 	}
 
 	return &soapResp.Body.GetRoomListsResponse, nil
+}
+
+func (c *client) GetFolder(param GetFolderParams) (*GetFolderResponse, error) {
+	req := &GetFolder{
+		FolderShape: &FolderShape{
+			BaseShape: param.BaseShape,
+		},
+		FolderIds: &FolderIds{
+			DistinguishedFolderId: &DistinguishedFolderId{
+				Id: param.FolderId,
+			},
+		},
+	}
+
+	xmlBytes, err := xml.MarshalIndent(req, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	bb, err := c.SendAndReceive(xmlBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	var soapResp getFolderResponseEnvelop
+	err = xml.Unmarshal(bb, &soapResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &soapResp.Body.GetFolderResponse, nil
+}
+
+func (c *client) QueryMessage(param QueryMessageParams) ([]Message, error) {
+	req := &FindItem{
+		ItemShape: &ItemShape{
+			BaseShape: BaseShapeAllProperties,
+		},
+		IndexedPageItemView: &IndexedPageItemView{
+			MaxEntriesReturned: param.Limit,
+			Offset:             param.Offset,
+			BasePoint:          BasePointBeginning,
+		},
+		ParentFolderIds: &ParentFolderIds{
+			DistinguishedFolderId: &DistinguishedFolderId{
+				Id: param.FolderId,
+			},
+		},
+	}
+
+	if !param.StartTime.IsZero() {
+		var endTime time.Time
+		if param.EndTime.IsZero() {
+			endTime = time.Now()
+		} else {
+			endTime = param.EndTime
+		}
+
+		restriction := &Restriction{And: &And{
+			IsGreaterThanOrEqualTo: &IsGreaterThanOrEqualTo{
+				FieldURI: &FieldURI{
+					FieldURI: "item:DateTimeReceived",
+				},
+				FieldURIOrConstant: &FieldURIOrConstant{
+					Constant: Constant(param.StartTime.Format(time.RFC3339)),
+				},
+			},
+			IsLessThanOrEqualTo: &IsLessThanOrEqualTo{
+				FieldURI: &FieldURI{
+					FieldURI: "item:DateTimeReceived",
+				},
+				FieldURIOrConstant: &FieldURIOrConstant{
+					Constant: Constant(endTime.Format(time.RFC3339)),
+				},
+			},
+		}}
+
+		req.Restriction = restriction
+	}
+
+	resp, err := c.FindItem(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []Message
+	if resp.ResponseMessages != nil &&
+		resp.ResponseMessages.FindItemResponseMessage != nil &&
+		resp.ResponseMessages.FindItemResponseMessage.RootFolder != nil &&
+		resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items != nil {
+		messages = resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items.Message
+	}
+
+	return messages, nil
+}
+
+func (c *client) FindItem(req *FindItem) (*FindItemResponse, error) {
+	xmlBytes, err := xml.MarshalIndent(req, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	bb, err := c.SendAndReceive(xmlBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	var soapResp getFindItemResponseEnvelop
+	err = xml.Unmarshal(bb, &soapResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &soapResp.Body.FindItemResponse, nil
 }
