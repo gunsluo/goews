@@ -689,8 +689,19 @@ func (c *client) GetFolder(param GetFolderParams) (*GetFolderResponse, error) {
 
 func (c *client) QueryMessage(param QueryMessageParams) ([]Message, error) {
 	req := &FindItem{
+		Traversal: FindItemShallow,
 		ItemShape: &ItemShape{
-			BaseShape: BaseShapeAllProperties,
+			// BaseShape: BaseShapeAllProperties,
+			BaseShape: BaseShapeIdOnly,
+			AdditionalProperties: &AdditionalProperties{
+				FieldURI: []FieldURI{
+					{"item:Subject"},
+					{"item:DateTimeReceived"},
+					{"message:Sender"},
+					{"item:Body"},
+				},
+			},
+			BodyType: BodyTypeHTML,
 		},
 		IndexedPageItemView: &IndexedPageItemView{
 			MaxEntriesReturned: param.Limit,
@@ -718,7 +729,9 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]Message, error) {
 					FieldURI: "item:DateTimeReceived",
 				},
 				FieldURIOrConstant: &FieldURIOrConstant{
-					Constant: Constant(param.StartTime.Format(time.RFC3339)),
+					Constant: &Constant{
+						Value: param.StartTime.UTC().Format(time.RFC3339),
+					},
 				},
 			},
 			IsLessThanOrEqualTo: &IsLessThanOrEqualTo{
@@ -726,7 +739,9 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]Message, error) {
 					FieldURI: "item:DateTimeReceived",
 				},
 				FieldURIOrConstant: &FieldURIOrConstant{
-					Constant: Constant(endTime.Format(time.RFC3339)),
+					Constant: &Constant{
+						Value: endTime.UTC().Format(time.RFC3339),
+					},
 				},
 			},
 		}}

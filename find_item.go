@@ -118,7 +118,7 @@ type ItemShape struct {
 	// The BaseShape element identifies the set of properties to return in an item or folder response.
 	BaseShape BaseShape `xml:"t:BaseShape,omitempty"`
 	// The BodyType element identifies how the body text is formatted in the response.
-	BodyType BodyType `xml:"t:BodyType,omitempty"`
+	BodyType string `xml:"t:BodyType,omitempty"`
 	// The ConvertHtmlCodePageToUTF8 element indicates whether the item HTML body is converted to UTF8.
 	ConvertHtmlCodePageToUTF8 ConvertHtmlCodePageToUTF8 `xml:"t:ConvertHtmlCodePageToUTF8,omitempty"`
 	// The FilterHtmlContent element specifies whether potentially unsafe HTML content is filtered from an item or attachment.
@@ -126,8 +126,6 @@ type ItemShape struct {
 	// The IncludeMimeContent element specifies whether the Multipurpose Internet Mail Extensions (MIME) content of an item or attachment is returned in the response.
 	IncludeMimeContent IncludeMimeContent `xml:"t:IncludeMimeContent,omitempty"`
 }
-
-type BodyType string
 
 const (
 	// The response will return the richest available content of body text. This is useful if it is unknown whether the content is text or HTML. The returned body will be text if the stored body is plain text. Otherwise, the response will return HTML if the stored body is in either HTML or RTF format. This is the default value.
@@ -249,7 +247,7 @@ type And struct {
 
 type Contains struct {
 	// The Constant element identifies a constant value in a restriction.
-	Constant *Constant `xml:"Constant"`
+	Constant *Constant `xml:"t:Constant,omitempty"`
 	// The ExtendedFieldURI element identifies an extended MAPI property.
 	ExtendedFieldURI *ExtendedFieldURI `xml:"t:ExtendedFieldURI,omitempty"`
 	// The FieldURI element identifies frequently referenced properties by URI.
@@ -328,7 +326,7 @@ type IsEqualTo struct {
 
 type FieldURIOrConstant struct {
 	// The Constant element identifies a constant value in a restriction.
-	Constant Constant `xml:"t:Constant,omitempty"`
+	Constant *Constant `xml:"t:Constant,omitempty"`
 	// The ExtendedFieldURI element identifies an extended MAPI property.
 	ExtendedFieldURI *ExtendedFieldURI `xml:"t:ExtendedFieldURI,omitempty"`
 	// The FieldURI element identifies frequently referenced properties by URI.
@@ -337,7 +335,10 @@ type FieldURIOrConstant struct {
 	IndexedFieldURI *IndexedFieldURI `xml:"t:IndexedFieldURI,omitempty"`
 }
 
-type Constant string
+type Constant struct {
+	// Specifies the value to compare in the restriction.
+	Value string `xml:"Value,attr"`
+}
 
 type IsGreaterThan struct {
 	// The ExtendedFieldURI element identifies an extended MAPI property.

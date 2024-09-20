@@ -32,6 +32,7 @@ type PersonaShape struct {
 type AdditionalProperties struct {
 	FieldURI []FieldURI `xml:"t:FieldURI,omitempty"`
 	// add additional fields
+	ExtendedFieldURI *ExtendedFieldURI `xml:"t:ExtendedFieldURI,omitempty"`
 }
 
 type FieldURI struct {
