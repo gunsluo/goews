@@ -33,4 +33,5 @@ type QueryMessageParams struct {
 	EndTime   time.Time
 	Limit     int
 	Offset    int
+	BodyType  string
 }

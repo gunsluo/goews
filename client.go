@@ -49,6 +49,7 @@ type Client interface {
 	SendAndReceive(body []byte) ([]byte, error)
 	GetFolder(GetFolderParams) (*GetFolderResponse, error)
 	FindItem(*FindItem) (*FindItemResponse, error)
+	GetItem(*GetItem) (*GetItemResponse, error)
 	QueryMessage(QueryMessageParams) ([]Message, error)
 }
 
@@ -695,13 +696,11 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]Message, error) {
 			BaseShape: BaseShapeIdOnly,
 			AdditionalProperties: &AdditionalProperties{
 				FieldURI: []FieldURI{
-					{"item:Subject"},
-					{"item:DateTimeReceived"},
-					{"message:Sender"},
-					{"item:Body"},
+					{FieldURI: "item:Subject"},
+					{FieldURI: "item:DateTimeReceived"},
+					{FieldURI: "message:Sender"},
 				},
 			},
-			BodyType: BodyTypeHTML,
 		},
 		IndexedPageItemView: &IndexedPageItemView{
 			MaxEntriesReturned: param.Limit,
@@ -759,12 +758,48 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]Message, error) {
 		resp.ResponseMessages.FindItemResponseMessage != nil &&
 		resp.ResponseMessages.FindItemResponseMessage.RootFolder != nil &&
 		resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items != nil {
-		messages = resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items.Message
+		for _, message := range resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items.Message {
+			if message.ItemId == nil {
+				return nil, errors.New("missing item id")
+			}
+
+			item, err := c.GetItem(&GetItem{
+				ItemShape: &ItemShape{
+					BaseShape: BaseShapeIdOnly,
+					AdditionalProperties: &AdditionalProperties{
+						FieldURI: []FieldURI{
+							{FieldURI: "item:Body"},
+						},
+					},
+					BodyType: param.BodyType,
+				},
+				ItemIds: &ItemIds{
+					ItemId: &ItemId{
+						Id:        message.ItemId.Id,
+						ChangeKey: message.ItemId.ChangeKey,
+					},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			for _, itemMessage := range item.ResponseMessages.Items.Message {
+				if len(itemMessage.Body.Body) > 0 {
+					message.Body = itemMessage.Body
+					break
+				}
+			}
+
+			messages = append(messages, message)
+		}
 	}
 
 	return messages, nil
 }
 
+// FindItem
+// https://learn.microsoft.com/en-us/exchange/client-developer/web-service-reference/finditem-operation1
 func (c *client) FindItem(req *FindItem) (*FindItemResponse, error) {
 	xmlBytes, err := xml.MarshalIndent(req, "", "  ")
 	if err != nil {
@@ -783,4 +818,26 @@ func (c *client) FindItem(req *FindItem) (*FindItemResponse, error) {
 	}
 
 	return &soapResp.Body.FindItemResponse, nil
+}
+
+// GetItem
+// https://learn.microsoft.com/en-us/exchange/client-developer/web-service-reference/getitem-operation-email-message
+func (c *client) GetItem(req *GetItem) (*GetItemResponse, error) {
+	xmlBytes, err := xml.MarshalIndent(req, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	bb, err := c.SendAndReceive(xmlBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	var soapResp getGetItemResponseEnvelop
+	err = xml.Unmarshal(bb, &soapResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &soapResp.Body.GetItemResponse, nil
 }
