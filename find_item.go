@@ -462,24 +462,24 @@ type getFindItemResponseBody struct {
 }
 
 type FindItemResponse struct {
-	ResponseMessages *GetFindItemResponseMessages `xml:"m:ResponseMessages"`
+	ResponseMessages *GetFindItemResponseMessages `xml:"ResponseMessages"`
 }
 
 type GetFindItemResponseMessages struct {
-	FindItemResponseMessage *FindItemResponseMessage `xml:"m:FindItemResponseMessage"`
+	FindItemResponseMessage *FindItemResponseMessage `xml:"FindItemResponseMessage"`
 }
 
 type FindItemResponseMessage struct {
 	// The DescriptiveLinkKey element is currently unused and is reserved for future use. It contains a value of 0.
-	DescriptiveLinkKey *DescriptiveLinkKey `xml:"m:DescriptiveLinkKey,omitempty"`
+	DescriptiveLinkKey *DescriptiveLinkKey `xml:"DescriptiveLinkKey,omitempty"`
 	// The MessageText element provides a text description of the status of the response.
-	MessageText MessageText `xml:"m:MessageText,omitempty"`
+	MessageText MessageText `xml:"MessageText,omitempty"`
 	// The MessageXml element provides additional error response information.
-	MessageXml *MessageXml `xml:"m:MessageXml,omitempty"`
+	MessageXml *MessageXml `xml:"MessageXml,omitempty"`
 	// The ResponseCode element provides status information about the request.
-	ResponseCode ResponseCode `xml:"m:ResponseCode"`
+	ResponseCode ResponseCode `xml:"ResponseCode"`
 	// The RootFolder element contains the results of a search of a single root folder during a FindItem operation.
-	RootFolder *RootFolderFindItemResponseMessage `xml:"m:RootFolder,omitempty"`
+	RootFolder *RootFolderFindItemResponseMessage `xml:"RootFolder,omitempty"`
 	// Describes the status of a FindItem operation response. The following values are valid for this attribute:  - Success  - Warning  - Error
 	ResponseClass string `xml:"ResponseClass,attr"`
 }
@@ -495,9 +495,9 @@ const (
 
 type RootFolderFindItemResponseMessage struct {
 	// The Groups element contains a collection of groups that are found with the search and aggregation criteria that is identified in the FindItem operation request.
-	Groups *Groups `xml:"t:Groups,omitempty"`
+	Groups *Groups `xml:"Groups,omitempty"`
 	// The Items element contains an array of items.
-	Items *Items `xml:"m:Items,omitempty"`
+	Items *Items `xml:"Items,omitempty"`
 	// Represents the next denominator to use for the next request when doing fractional paging.
 	AbsoluteDenominator *string `xml:"AbsoluteDenominator,attr"`
 	// Indicates whether the current results contain the last item in the query, such that further paging is not needed.
@@ -523,3 +523,176 @@ type GroupedItems struct {
 }
 
 type GroupIndex string
+
+type Items struct {
+	XMLName xml.Name
+
+	// The CalendarItem element represents an Exchange calendar item.
+	CalendarItem []*CalendarItem `xml:"CalendarItem"`
+	// // The Contact element represents a contact item in the Exchange store.
+	// Contact []*Contact `xml:"Contact"`
+	// // The DistributionList element represents a distribution list.
+	// DistributionList []*DistributionList `xml:"DistributionList"`
+	// // The Item element represents a generic item in the Exchange store.
+	// Item []*Item `xml:"Item"`
+	// // The MeetingCancellation element represents a meeting cancellation in the Exchange store.
+	// MeetingCancellation []*MeetingCancellation `xml:"MeetingCancellation"`
+	// // The MeetingMessage element represents a meeting in the Exchange store.
+	// MeetingMessage []*MeetingMessage `xml:"MeetingMessage"`
+	// // The MeetingRequest element represents a meeting request in the Exchange store.
+	// MeetingRequest []*MeetingRequest `xml:"MeetingRequest"`
+	// // The MeetingResponse element represents a meeting response in the Exchange store.
+	// MeetingResponse []*MeetingResponse `xml:"MeetingResponse"`
+	// The Message element represents a Microsoft Exchange e-mail message.
+	Message []*Message `xml:"Message"`
+	// The PostItem element represents a post item in the Exchange store.
+	// PostItem []*PostItem `xml:"PostItem"`
+	// // The Task element represents a task in the Exchange store.
+	// Task []*Task `xml:"Task"`
+}
+
+// type TMessage struct {
+// 	ItemClass     string        `xml:"t:ItemClass,omitempty"`
+// 	ItemId        *ItemId       `xml:"t:ItemId,omitempty"`
+// 	Subject       string        `xml:"t:Subject"`
+// 	Body          TBody         `xml:"t:Body"`
+// 	Sender        OneMailbox    `xml:"t:Sender"`
+// 	ToRecipients  XMailbox      `xml:"t:ToRecipients"`
+// 	CcRecipients  *XMailbox     `xml:"t:CcRecipients,omitempty"`
+// 	BccRecipients *XMailbox     `xml:"t:BccRecipients,omitempty"`
+// 	Attachments   *TAttachments `xml:"t:Attachments,omitempty"`
+// }
+
+type Message struct {
+	// // The Attachments element contains the items or files that are attached to an item in the Exchange store.
+	// Attachments *Attachments `xml:"Attachments"`
+	// // The BccRecipients element represents a collection of recipients to receive a blind carbon copy (Bcc) of an e-mail message.
+	// BccRecipients *BccRecipients `xml:"BccRecipients"`
+	// The Body element specifies the body of an item.
+	Body *Body `xml:"Body"`
+	// The Categories element contains a collection of strings that identify the categories to which an item in the mailbox belongs.
+	// Categories *Categories `xml:"Categories"`
+	// // The CcRecipients element represents a collection of recipients that will receive a copy of the message.
+	// CcRecipients *CcRecipients `xml:"CcRecipients"`
+	// // The ConversationId element contains the identifier of an item or conversation.
+	// ConversationId *ConversationId `xml:"ConversationId"`
+	// // The ConversationIndex element contains a binary ID that represents the thread to which this message belongs.
+	// ConversationIndex *ConversationIndex `xml:"ConversationIndex"`
+	// // The ConversationTopic element represents the conversation topic.
+	// ConversationTopic *ConversationTopic `xml:"ConversationTopic"`
+	// // The Culture element represents the culture for a given item in a mailbox.
+	// Culture *Culture `xml:"Culture"`
+	// // The DateTimeCreated element represents the date and time that an item in the mailbox was created.
+	// DateTimeCreated *DateTimeCreated `xml:"DateTimeCreated"`
+	// // The DateTimeReceived element represents the date and time that an item in a mailbox was received.
+	// DateTimeReceived *DateTimeReceived `xml:"DateTimeReceived"`
+	// // The DateTimeSent element represents the date and time at which an item in a mailbox was sent.
+	// DateTimeSent *DateTimeSent `xml:"DateTimeSent"`
+	// // The DisplayCc element represents the display string that is used for the contents of the Cc box. This is the concatenated string of all Cc recipient display names.
+	// DisplayCc *DisplayCc `xml:"DisplayCc"`
+	// // The DisplayTo element represents the display string that is used for the contents of the To box. This is the concatenated string of all To recipient display names.
+	// DisplayTo *DisplayTo `xml:"DisplayTo"`
+	// // The EffectiveRights element contains the client's rights based on the permission settings for the item or folder. This element is read-only.
+	// EffectiveRights *EffectiveRights `xml:"EffectiveRights"`
+	// // The ExtendedProperty element identifies extended MAPI properties on folders and items.
+	// ExtendedProperty *ExtendedProperty `xml:"ExtendedProperty"`
+	// // The From element represents the address from which the message was sent.
+	// From *From `xml:"From"`
+	// // The HasAttachments element represents a property that is set to true if an item has at least one visible attachment or if a conversation contains at least one item that has an attachment. This property is read-only.
+	// HasAttachments *HasAttachments `xml:"HasAttachments"`
+	// // The Importance element describes the importance of an item or the aggregated importance of all items in a conversation in the current folder.
+	// Importance *Importance `xml:"Importance"`
+	// // The InReplyTo element represents the identifier of the item to which this item is a reply.
+	// InReplyTo *InReplyTo `xml:"InReplyTo"`
+	// // The InternetMessageHeaders element contains a collection of some of the Internet message headers that are contained in an item in a mailbox. To get the entire collection of Internet message headers, use the PR_TRANSPORT_MESSAGE_HEADERS property. For more information about EWS and Internet message headers, seeGetting Internet message headersin EWS, MIME, and the missing Internet message headers.
+	// InternetMessageHeaders *InternetMessageHeaders `xml:"InternetMessageHeaders"`
+	// // The InternetMessageId element represents the Internet message identifier of an item.
+	// InternetMessageId *InternetMessageId `xml:"InternetMessageId"`
+	// // The IsAssociated element indicates whether the item is associated with a folder.
+	// IsAssociated *IsAssociated `xml:"IsAssociated"`
+	// // The IsDeliveryReceiptRequested element indicates whether the sender of an item requests a delivery receipt.
+	// IsDeliveryReceiptRequested *IsDeliveryReceiptRequested `xml:"IsDeliveryReceiptRequested"`
+	// // The IsDraft element indicates whether an item has not yet been sent.
+	// IsDraft *IsDraft `xml:"IsDraft"`
+	// // The IsFromMe element indicates whether a user sent an item to him or herself.
+	// IsFromMe *IsFromMe `xml:"IsFromMe"`
+	// // The IsRead element indicates whether a message has been read.
+	// IsRead *IsRead `xml:"IsRead"`
+	// // The IsReadReceiptRequested element indicates whether the sender of an item requests a read receipt.
+	// IsReadReceiptRequested *IsReadReceiptRequested `xml:"IsReadReceiptRequested"`
+	// // The IsResend element indicates whether the item had previously been sent.
+	// IsResend *IsResend `xml:"IsResend"`
+	// // The IsResponseRequested element indicates whether a response to an item is requested.
+	// IsResponseRequested *IsResponseRequested `xml:"IsResponseRequested"`
+	// // The IsSubmitted element indicates whether an item has been submitted to the Outbox default folder.
+	// IsSubmitted *IsSubmitted `xml:"IsSubmitted"`
+	// // The IsUnmodified element indicates whether the item has been modified.
+	// IsUnmodified *IsUnmodified `xml:"IsUnmodified"`
+	// // The ItemClass element represents the message class of an item.
+	// ItemClass *ItemClass `xml:"ItemClass"`
+	// The ItemId element contains the unique identifier and change key of an item in the Exchange store.
+	ItemId *ItemId `xml:"ItemId"`
+	// The LastModifiedName element contains the display name of the last user to modify an item. This element is read-only. This element was introduced in Microsoft Exchange Server 2007 Service Pack 1 (SP1).
+	// LastModifiedName *LastModifiedName `xml:"LastModifiedName"`
+	// // The LastModifiedTime element indicates when an item was last modified. This element is read-only.
+	// LastModifiedTime *LastModifiedTime `xml:"LastModifiedTime"`
+	// // The MimeContent element contains the ASCII MIME stream of an object that is represented in base64Binary format and supports [RFC2045].
+	// MimeContent *MimeContent `xml:"MimeContent"`
+	// // The ParentFolderId element represents the identifier of the parent folder that contains the item or folder.
+	// ParentFolderId *ParentFolderId `xml:"ParentFolderId"`
+	// // The ReceivedBy element identifies the delegate in a delegate access scenario.
+	// ReceivedBy *ReceivedBy `xml:"ReceivedBy"`
+	// // The ReceivedRepresenting element identifies the principal in a delegate access scenario.
+	// ReceivedRepresenting *ReceivedRepresenting `xml:"ReceivedRepresenting"`
+	// // The References element represents the Usenet header that is used to associate replies with the original messages.
+	// References *References `xml:"References"`
+	// // The ReminderDueBy element represents the date and time when the event occurs. This is used by the ReminderMinutesBeforeStart element to determine when the reminder is displayed.
+	// ReminderDueBy *ReminderDueBy `xml:"ReminderDueBy"`
+	// // The ReminderIsSet element indicates whether a reminder has been set for an item in the Exchange store.
+	// ReminderIsSet *ReminderIsSet `xml:"ReminderIsSet"`
+	// // The ReminderMessageData element specifies the data in a reminder message.
+	// ReminderMessageData *ReminderMessageData `xml:"ReminderMessageData"`
+	// // The ReminderMinutesBeforeStart element represents the number of minutes before an event occurs when a reminder is displayed.
+	// ReminderMinutesBeforeStart *ReminderMinutesBeforeStart `xml:"ReminderMinutesBeforeStart"`
+	// // The ReplyTo element identifies an array of addresses to which replies should be sent.
+	// ReplyTo *ReplyTo `xml:"ReplyTo"`
+	// // The ResponseObjects element contains a collection of all the response objects that are associated with an item in the Exchange store.
+	// ResponseObjects *ResponseObjects `xml:"ResponseObjects"`
+	// The Sender element identifies the sender of an item.
+	Sender *Sender `xml:"Sender"`
+	// // The Sensitivity element indicates the sensitivity level of an item.
+	// Sensitivity *Sensitivity `xml:"Sensitivity"`
+	// The Size element represents the size in bytes of an item or all the items in a conversation in the current folder. This property is read-only.
+	Size *Size `xml:"Size"`
+	// The Subject element represents the subject property of Exchange store items. The subject is limited to 255 characters.
+	Subject *Subject `xml:"Subject"`
+	// // The ToRecipients element contains an array of recipients of an item. These are the primary recipients of an item.
+	// ToRecipients []*ToRecipients `xml:"ToRecipients"`
+	// // The UniqueBody element represents an HTML fragment or plain text which represents the unique body of this conversation.
+	// UniqueBody *UniqueBody `xml:"UniqueBody"`
+	// // The WebClientEditFormQueryString element represents a URL to concatenate to the Outlook Web App endpoint to edit an item in Outlook Web App.
+	// WebClientEditFormQueryString *WebClientEditFormQueryString `xml:"WebClientEditFormQueryString"`
+	// // The WebClientReadFormQueryString element represents a URL to concatenate to the Outlook Web App endpoint to read an item in Outlook Web App.
+	// WebClientReadFormQueryString *WebClientReadFormQueryString `xml:"WebClientReadFormQueryString"`
+}
+
+type Body struct {
+	// Specifies the type of the body.
+	BodyType *string `xml:"BodyType,attr"`
+	// Boolean value that indicates whether the body is truncated.
+	IsTruncated *string `xml:"IsTruncated,attr"`
+	TEXT        string  `xml:",chardata"`
+}
+
+type Sender struct {
+	// The Mailbox element identifies a mail-enabled Active Directory object.
+	Mailbox *Mailbox `xml:"Mailbox"`
+}
+
+type Size struct {
+	TEXT int64 `xml:",chardata"`
+}
+
+type Subject struct {
+	TEXT string `xml:",chardata"`
+}

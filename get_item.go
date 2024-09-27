@@ -53,20 +53,20 @@ type getGetItemResponseBody struct {
 
 type GetItemResponse struct {
 	// The GetItemResponseMessage element contains the status and result of a single GetItem operation request.
-	ResponseMessages *GetItemResponseMessage `xml:"m:GetItemResponseMessage"`
+	ResponseMessages *GetItemResponseMessage `xml:"GetItemResponseMessage"`
 }
 
 type GetItemResponseMessage struct {
 	// The DescriptiveLinkKey element is currently unused and is reserved for future use. It contains a value of 0.
-	DescriptiveLinkKey *DescriptiveLinkKey `xml:"m:DescriptiveLinkKey,omitempty"`
+	DescriptiveLinkKey *DescriptiveLinkKey `xml:"DescriptiveLinkKey,omitempty"`
 	// The Items element contains an array of items.
-	Items *Items `xml:"m:Items,omitempty"`
+	Items *Items `xml:"Items,omitempty"`
 	// The MessageText element provides a text description of the status of the response.
-	MessageText MessageText `xml:"m:MessageText,omitempty"`
+	MessageText MessageText `xml:"MessageText,omitempty"`
 	// The MessageXml element provides additional error response information.
-	MessageXml *MessageXml `xml:"m:MessageXml,omitempty"`
+	MessageXml *MessageXml `xml:"MessageXml,omitempty"`
 	// The ResponseCode element provides status information about the request.
-	ResponseCode ResponseCode `xml:"m:ResponseCode"`
+	ResponseCode ResponseCode `xml:"ResponseCode"`
 	// Describes the status of a GetItem operation response. The following values are valid for this attribute:- Success- Warning- Error
 	ResponseClass string `xml:"ResponseClass,attr"`
 }

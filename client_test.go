@@ -2,7 +2,6 @@ package goews
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math"
 	"os"
 	"testing"
@@ -108,17 +107,17 @@ func testListUsersEvents(c Client) error {
 	return nil
 }
 
-func testCreateEvent(c Client) error {
-	return c.CreateEvent(
-		[]string{"mhewedy@mhewedy.onmicrosoft.com", "example2@mhewedy.onmicrosoft.com"},
-		[]string{},
-		"An Event subject",
-		"An Event body, as plain text",
-		"Room 55",
-		time.Now().Add(24*time.Hour),
-		30*time.Minute,
-	)
-}
+// func testCreateEvent(c Client) error {
+// 	return c.CreateEvent(
+// 		[]string{"mhewedy@mhewedy.onmicrosoft.com", "example2@mhewedy.onmicrosoft.com"},
+// 		[]string{},
+// 		"An Event subject",
+// 		"An Event body, as plain text",
+// 		"Room 55",
+// 		time.Now().Add(24*time.Hour),
+// 		30*time.Minute,
+// 	)
+// }
 
 func testGetRoomLists(c Client) error {
 	response, err := c.GetRoomLists()
@@ -165,7 +164,7 @@ func testGetUserPhoto(c Client) error {
 		return err
 	}
 
-	err = ioutil.WriteFile("/tmp/file.png", bytes, os.ModePerm)
+	err = os.WriteFile("/tmp/file.png", bytes, os.ModePerm)
 	fmt.Println("written to: /tmp/file.png")
 
 	return err

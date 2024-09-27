@@ -35,8 +35,8 @@ const (
 
 type Client interface {
 	SendEmail(SendEmailParams) error
-	CreateHTMLEvent(to, optional []string, subject, body, location string, from time.Time, duration time.Duration) error
-	CreateEvent(to, optional []string, subject, body, location string, from time.Time, duration time.Duration) error
+	// CreateHTMLEvent(to, optional []string, subject, body, location string, from time.Time, duration time.Duration) error
+	// CreateEvent(to, optional []string, subject, body, location string, from time.Time, duration time.Duration) error
 	GetPersonaById(personaID string) (*Persona, error)
 	GetPersona(r *GetPersonaRequest) (*GetPersonaResponse, error)
 	GetUserPhoto(email string) (string, error)
@@ -172,10 +172,10 @@ func logResponse(c *client, resp *http.Response) {
 
 // SendEmail helper method to send Message
 func (c *client) SendEmail(param SendEmailParams) error {
-	m := Message{
+	m := TMessage{
 		//ItemClass: "IPM.Note",
 		Subject: param.Subject,
-		Body: Body{
+		Body: TBody{
 			BodyType: param.BodyType,
 			Body:     []byte(param.Body),
 		},
@@ -212,7 +212,7 @@ func (c *client) SendEmail(param SendEmailParams) error {
 	}
 
 	if len(param.FileAttachments) > 0 {
-		m.Attachments = &Attachments{}
+		m.Attachments = &TAttachments{}
 		for _, attachment := range param.FileAttachments {
 			content := base64.StdEncoding.EncodeToString(attachment.Content)
 			m.Attachments.Files = append(m.Attachments.Files,
@@ -231,18 +231,18 @@ func (c *client) SendEmail(param SendEmailParams) error {
 		}
 	}
 
-	return c.CreateMessageItem(m)
+	return c.CreateMessageItem(&m)
 }
 
 // CreateMessageItem
 // https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/createitem-operation-email-message
-func (c *client) CreateMessageItem(m ...Message) error {
+func (c *client) CreateMessageItem(m *TMessage) error {
 
 	item := &CreateItem{
 		MessageDisposition: "SendAndSaveCopy",
-		SavedItemFolderId:  SavedItemFolderId{DistinguishedFolderId{Id: "sentitems"}},
+		SavedItemFolderId:  &SavedItemFolderId{DistinguishedFolderId{Id: "sentitems"}},
 	}
-	item.Items.Message = append(item.Items.Message, m...)
+	item.Items = &ItemsNonEmptyArrayOfAllItemsType{Message: m}
 
 	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
 	if err != nil {
@@ -274,83 +274,83 @@ func checkCreateItemResponseForErrors(bb []byte) error {
 	return nil
 }
 
-// CreateCalendarItem
-// https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/createitem-operation-calendar-item
-func (c *client) CreateCalendarItem(ci ...CalendarItem) error {
+// // CreateCalendarItem
+// // https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/createitem-operation-calendar-item
+// func (c *client) CreateCalendarItem(ci ...CalendarItem) error {
+//
+// 	item := &CreateItem{
+// 		SendMeetingInvitations: "SendToAllAndSaveCopy",
+// 		SavedItemFolderId:      SavedItemFolderId{DistinguishedFolderId{Id: "calendar"}},
+// 	}
+// 	item.Items.CalendarItem = append(item.Items.CalendarItem, ci...)
+//
+// 	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	bb, err := c.SendAndReceive(xmlBytes)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	if err := checkCreateItemResponseForErrors(bb); err != nil {
+// 		return err
+// 	}
+//
+// 	return nil
+// }
 
-	item := &CreateItem{
-		SendMeetingInvitations: "SendToAllAndSaveCopy",
-		SavedItemFolderId:      SavedItemFolderId{DistinguishedFolderId{Id: "calendar"}},
-	}
-	item.Items.CalendarItem = append(item.Items.CalendarItem, ci...)
+// func (c *client) CreateHTMLEvent(
+// 	to, optional []string, subject, body, location string, from time.Time, duration time.Duration,
+// ) error {
+// 	return c.createEvent(to, optional, subject, body, location, "HTML", from, duration)
+// }
 
-	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	bb, err := c.SendAndReceive(xmlBytes)
-	if err != nil {
-		return err
-	}
-
-	if err := checkCreateItemResponseForErrors(bb); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *client) CreateHTMLEvent(
-	to, optional []string, subject, body, location string, from time.Time, duration time.Duration,
-) error {
-	return c.createEvent(to, optional, subject, body, location, "HTML", from, duration)
-}
-
-// CreateEvent helper method to send Message
-func (c *client) CreateEvent(
-	to, optional []string, subject, body, location string, from time.Time, duration time.Duration,
-) error {
-	return c.createEvent(to, optional, subject, body, location, "Text", from, duration)
-}
-
-func (c *client) createEvent(
-	to, optional []string, subject, body, location, bodyType string, from time.Time, duration time.Duration,
-) error {
-
-	requiredAttendees := make([]Attendee, len(to))
-	for i, tt := range to {
-		requiredAttendees[i] = Attendee{Mailbox: Mailbox{EmailAddress: tt}}
-	}
-
-	optionalAttendees := make([]Attendee, len(optional))
-	for i, tt := range optional {
-		optionalAttendees[i] = Attendee{Mailbox: Mailbox{EmailAddress: tt}}
-	}
-
-	room := make([]Attendee, 1)
-	room[0] = Attendee{Mailbox: Mailbox{EmailAddress: location}}
-
-	m := CalendarItem{
-		Subject: subject,
-		Body: Body{
-			BodyType: bodyType,
-			Body:     []byte(body),
-		},
-		ReminderIsSet:              true,
-		ReminderMinutesBeforeStart: 15,
-		Start:                      from,
-		End:                        from.Add(duration),
-		IsAllDayEvent:              false,
-		LegacyFreeBusyStatus:       BusyTypeBusy,
-		Location:                   location,
-		RequiredAttendees:          []Attendees{{Attendee: requiredAttendees}},
-		OptionalAttendees:          []Attendees{{Attendee: optionalAttendees}},
-		Resources:                  []Attendees{{Attendee: room}},
-	}
-
-	return c.CreateCalendarItem(m)
-}
+// // CreateEvent helper method to send Message
+// func (c *client) CreateEvent(
+// 	to, optional []string, subject, body, location string, from time.Time, duration time.Duration,
+// ) error {
+// 	return c.createEvent(to, optional, subject, body, location, "Text", from, duration)
+// }
+//
+// func (c *client) createEvent(
+// 	to, optional []string, subject, body, location, bodyType string, from time.Time, duration time.Duration,
+// ) error {
+//
+// 	requiredAttendees := make([]Attendee, len(to))
+// 	for i, tt := range to {
+// 		requiredAttendees[i] = Attendee{Mailbox: Mailbox{EmailAddress: tt}}
+// 	}
+//
+// 	optionalAttendees := make([]Attendee, len(optional))
+// 	for i, tt := range optional {
+// 		optionalAttendees[i] = Attendee{Mailbox: Mailbox{EmailAddress: tt}}
+// 	}
+//
+// 	room := make([]Attendee, 1)
+// 	room[0] = Attendee{Mailbox: Mailbox{EmailAddress: location}}
+//
+// 	m := CalendarItem{
+// 		Subject: subject,
+// 		Body: Body{
+// 			BodyType: bodyType,
+// 			Body:     []byte(body),
+// 		},
+// 		ReminderIsSet:              true,
+// 		ReminderMinutesBeforeStart: 15,
+// 		Start:                      from,
+// 		End:                        from.Add(duration),
+// 		IsAllDayEvent:              false,
+// 		LegacyFreeBusyStatus:       BusyTypeBusy,
+// 		Location:                   location,
+// 		RequiredAttendees:          []Attendees{{Attendee: requiredAttendees}},
+// 		OptionalAttendees:          []Attendees{{Attendee: optionalAttendees}},
+// 		Resources:                  []Attendees{{Attendee: room}},
+// 	}
+//
+// 	return c.CreateCalendarItem(m)
+// }
 
 // GetPersonaById find persona slice by query string
 func (c *client) GetPersonaById(personaID string) (*Persona, error) {
@@ -785,13 +785,13 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]Message, error) {
 			}
 
 			for _, itemMessage := range item.ResponseMessages.Items.Message {
-				if len(itemMessage.Body.Body) > 0 {
+				if itemMessage.Body != nil {
 					message.Body = itemMessage.Body
 					break
 				}
 			}
 
-			messages = append(messages, message)
+			messages = append(messages, *message)
 		}
 	}
 
