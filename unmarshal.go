@@ -3,13 +3,14 @@ package goews
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"reflect"
 )
 
 func Unmarshal(bArr []byte, e Element) error {
 	eAddrVal := reflect.ValueOf(e)
 	if eAddrVal.Kind() != reflect.Ptr {
-		return &ErrorUnMarshalNotPTR
+		return errors.New("please, provide pointer to Interface Element")
 	}
 	eVal := eAddrVal.Elem()
 	if !eVal.CanSet() {
@@ -42,7 +43,7 @@ func Unmarshal(bArr []byte, e Element) error {
 
 	err := xml.Unmarshal(bArr, &soEA)
 	if err != nil {
-		return ErrorCantUnMarshal.formatError(string(bArr), err.Error())
+		return fmt.Errorf("cant unmarshal %#v, err %v", string(bArr), err.Error())
 	}
 
 	valArr := reflect.ValueOf(soEA)

@@ -2,6 +2,7 @@ package goews
 
 import (
 	"encoding/xml"
+	"fmt"
 	"reflect"
 )
 
@@ -49,7 +50,7 @@ func NewEnvelopeMarshal(body interface{}, schemas ...*Schema) (*EnvelopeRequest,
 		case SchemaMessages:
 			res.Messages = schema
 		default:
-			return nil, ErrorUnsupportedSchema.formatError(*schema)
+			return nil, fmt.Errorf("unsupported schema name %v", *schema)
 		}
 	}
 	if len(schemas) == 0 {
@@ -107,7 +108,7 @@ func (e *EnvelopeRequest) GetEnvelopeBytes() ([]byte, error) {
 	reTagXMLElement(e)
 	res, err := xml.Marshal(e)
 	if err != nil {
-		return nil, ErrorCantMarshal.formatError(*e, err.Error())
+		return nil, fmt.Errorf("cant marshal %#v, err %v", *e, err.Error())
 	}
 	return append(startBytes, res...), nil
 }
