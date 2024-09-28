@@ -1,5 +1,7 @@
 package goews
 
+import "time"
+
 type Envelope interface {
 	GetEnvelopeBytes() ([]byte, error)
 }
@@ -28,4 +30,13 @@ type AttachmentId struct {
 	Id                string
 	RootItemId        string
 	RootItemChangeKey string
+}
+
+type QueryMessageParams struct {
+	FolderId  string
+	StartTime time.Time
+	EndTime   time.Time
+	Limit     int
+	Offset    int
+	BodyType  string
 }

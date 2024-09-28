@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gunsluo/goews/v3/ntlmssp"
@@ -19,13 +20,12 @@ import (
 
 type Client interface {
 	CreateItem(*schema.CreateItem) error
+	FindItem(*schema.FindItem) (*schema.FindItemResponse, error)
+	GetItem(*schema.GetItem) (*schema.GetItemResponse, error)
 	DoRequest(Envelope, Element) error
 
-	// FindItem(*FindItem) (*FindItemResponse, error)
-	// GetItem(*GetItem) (*GetItemResponse, error)
-	// QueryMessage(QueryMessageParams) ([]Message, error)
-
 	SendEmail(SendEmailParams) error
+	QueryMessage(QueryMessageParams) ([]*schema.Message, error)
 }
 
 type Option func(*options)
@@ -225,6 +225,60 @@ func (c *client) CreateItem(item *schema.CreateItem) error {
 	return nil
 }
 
+// FindItem
+// https://learn.microsoft.com/en-us/exchange/client-developer/web-service-reference/finditem-operation1
+func (c *client) FindItem(item *schema.FindItem) (*schema.FindItemResponse, error) {
+	envelope, err := NewEnvelopeMarshal(item)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &schema.FindItemResponse{}
+	if err := c.DoRequest(envelope, resp); err != nil {
+		return nil, err
+	}
+
+	if resp.ResponseMessages != nil &&
+		resp.ResponseMessages.FindItemResponseMessage != nil &&
+		resp.ResponseMessages.FindItemResponseMessage.ResponseClass != nil &&
+		*resp.ResponseMessages.FindItemResponseMessage.ResponseClass == schema.FindItemResponseMessageError {
+		if resp.ResponseMessages.FindItemResponseMessage.MessageText != nil {
+			return nil, errors.New(resp.ResponseMessages.FindItemResponseMessage.MessageText.TEXT)
+		}
+
+		return nil, errors.New("Unknow Error")
+	}
+
+	return resp, nil
+}
+
+// GetItem
+// https://learn.microsoft.com/en-us/exchange/client-developer/web-service-reference/getitem-operation-email-message
+func (c *client) GetItem(item *schema.GetItem) (*schema.GetItemResponse, error) {
+	envelope, err := NewEnvelopeMarshal(item)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &schema.GetItemResponse{}
+	if err := c.DoRequest(envelope, resp); err != nil {
+		return nil, err
+	}
+
+	if resp.ResponseMessages != nil &&
+		resp.ResponseMessages.GetItemResponseMessage != nil &&
+		resp.ResponseMessages.GetItemResponseMessage.ResponseClass != nil &&
+		*resp.ResponseMessages.GetItemResponseMessage.ResponseClass == schema.FindItemResponseMessageError {
+		if resp.ResponseMessages.GetItemResponseMessage.MessageText != nil {
+			return nil, errors.New(resp.ResponseMessages.GetItemResponseMessage.MessageText.TEXT)
+		}
+
+		return nil, errors.New("Unknow Error")
+	}
+
+	return resp, nil
+}
+
 // SendEmail helper method to send Message
 func (c *client) SendEmail(param SendEmailParams) error {
 	var to *schema.ToRecipients
@@ -328,4 +382,117 @@ func (c *client) SendEmail(param SendEmailParams) error {
 	}
 
 	return c.CreateItem(item)
+}
+
+func (c *client) QueryMessage(param QueryMessageParams) ([]*schema.Message, error) {
+	var restriction *schema.Restriction
+	if !param.StartTime.IsZero() {
+		var endTime time.Time
+		if param.EndTime.IsZero() {
+			endTime = time.Now()
+		} else {
+			endTime = param.EndTime
+		}
+
+		restriction = &schema.Restriction{And: &schema.And{
+			IsGreaterThanOrEqualTo: &schema.IsGreaterThanOrEqualTo{
+				FieldURI: &schema.FieldURI{
+					FieldURI: getPTR[string]("item:DateTimeReceived"),
+				},
+				FieldURIOrConstant: &schema.FieldURIOrConstant{
+					Constant: &schema.Constant{
+						Value: getPTR[string](param.StartTime.UTC().Format(time.RFC3339)),
+					},
+				},
+			},
+			IsLessThanOrEqualTo: &schema.IsLessThanOrEqualTo{
+				FieldURI: &schema.FieldURI{
+					FieldURI: getPTR[string]("item:DateTimeReceived"),
+				},
+				FieldURIOrConstant: &schema.FieldURIOrConstant{
+					Constant: &schema.Constant{
+						Value: getPTR[string](endTime.UTC().Format(time.RFC3339)),
+					},
+				},
+			},
+		}}
+	}
+
+	item := &schema.FindItem{
+		Traversal: getPTR[string](schema.FindItemShallow),
+		ItemShape: &schema.ItemShape{
+			BaseShape: &schema.BaseShape{TEXT: schema.BaseShapeIdOnly},
+			AdditionalProperties: &schema.AdditionalProperties{
+				FieldURI: []*schema.FieldURI{
+					{FieldURI: getPTR[string]("item:Subject")},
+					{FieldURI: getPTR[string]("item:DateTimeReceived")},
+					{FieldURI: getPTR[string]("message:Sender")},
+				},
+			},
+		},
+		IndexedPageItemView: &schema.IndexedPageItemView{
+			MaxEntriesReturned: getPTR[string](strconv.Itoa(param.Limit)),
+			Offset:             getPTR[string](strconv.Itoa(param.Offset)),
+			BasePoint:          getPTR[string](schema.BasePointBeginning),
+		},
+		ParentFolderIds: &schema.ParentFolderIds{
+			DistinguishedFolderId: &schema.DistinguishedFolderId{
+				Id: getPTR[string](param.FolderId),
+			},
+		},
+		Restriction: restriction,
+	}
+
+	resp, err := c.FindItem(item)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []*schema.Message
+	if resp.ResponseMessages != nil &&
+		resp.ResponseMessages.FindItemResponseMessage != nil &&
+		resp.ResponseMessages.FindItemResponseMessage.RootFolder != nil &&
+		resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items != nil {
+		for _, message := range resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items.Message {
+			if message.ItemId == nil {
+				return nil, errors.New("missing item id")
+			}
+
+			itemmore, err := c.GetItem(&schema.GetItem{
+				ItemShape: &schema.ItemShape{
+					BaseShape: &schema.BaseShape{TEXT: schema.BaseShapeIdOnly},
+					AdditionalProperties: &schema.AdditionalProperties{
+						FieldURI: []*schema.FieldURI{
+							{FieldURI: getPTR[string]("item:Body")},
+						},
+					},
+					BodyType: &schema.BodyType{TEXT: param.BodyType},
+				},
+				ItemIds: &schema.ItemIds{
+					ItemId: &schema.ItemId{
+						Id:        message.ItemId.Id,
+						ChangeKey: message.ItemId.ChangeKey,
+					},
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			if itemmore.ResponseMessages != nil &&
+				itemmore.ResponseMessages.GetItemResponseMessage != nil &&
+				itemmore.ResponseMessages.GetItemResponseMessage.Items != nil {
+				for _, itemMessage := range itemmore.ResponseMessages.GetItemResponseMessage.Items.Message {
+					if itemMessage.Body != nil {
+						message.Body = itemMessage.Body
+						break
+					}
+				}
+			}
+
+			messages = append(messages, message)
+		}
+	}
+
+	return messages, nil
 }

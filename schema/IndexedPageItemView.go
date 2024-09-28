@@ -15,6 +15,11 @@ type IndexedPageItemView struct {
 	Offset *string `xml:"Offset,attr"`
 }
 
+const (
+	BasePointBeginning string = "Beginning"
+	BasePointEnd       string = "End"
+)
+
 func (I *IndexedPageItemView) SetForMarshal() {
 	I.XMLName.Local = "m:IndexedPageItemView"
 }
