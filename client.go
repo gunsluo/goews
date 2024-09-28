@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -226,37 +227,73 @@ func (c *client) CreateItem(item *schema.CreateItem) error {
 
 // SendEmail helper method to send Message
 func (c *client) SendEmail(param SendEmailParams) error {
-	var to []*schema.ToRecipients
-	for _, addr := range param.To {
-		to = append(to, &schema.ToRecipients{
-			Mailbox: &schema.Mailbox{
+	var to *schema.ToRecipients
+	if len(param.To) > 0 {
+		to = &schema.ToRecipients{}
+		for _, addr := range param.To {
+			to.Mailbox = append(to.Mailbox, &schema.Mailbox{
 				EmailAddress: &schema.EmailAddressNonEmptyStringType{
 					TEXT: addr,
 				},
-			},
-		})
+			})
+		}
 	}
 
-	var cc []*schema.CcRecipients
-	for _, addr := range param.Cc {
-		cc = append(cc, &schema.CcRecipients{
-			Mailbox: &schema.Mailbox{
+	var cc *schema.CcRecipients
+	if len(param.Cc) > 0 {
+		cc = &schema.CcRecipients{}
+		for _, addr := range param.Cc {
+			cc.Mailbox = append(cc.Mailbox, &schema.Mailbox{
 				EmailAddress: &schema.EmailAddressNonEmptyStringType{
 					TEXT: addr,
 				},
-			},
-		})
+			})
+		}
 	}
 
-	var bcc []*schema.BccRecipients
-	for _, addr := range param.Bcc {
-		bcc = append(bcc, &schema.BccRecipients{
-			Mailbox: &schema.Mailbox{
+	var bcc *schema.BccRecipients
+	if len(param.Bcc) > 0 {
+		bcc = &schema.BccRecipients{}
+		for _, addr := range param.Bcc {
+			bcc.Mailbox = append(bcc.Mailbox, &schema.Mailbox{
 				EmailAddress: &schema.EmailAddressNonEmptyStringType{
 					TEXT: addr,
 				},
-			},
-		})
+			})
+		}
+	}
+
+	var attachments *schema.Attachments
+	if len(param.FileAttachments) > 0 {
+		attachments = &schema.Attachments{}
+		for _, fa := range param.FileAttachments {
+			var attachmentId *schema.AttachmentId
+			if fa.AttachmentId != nil {
+				attachmentId = &schema.AttachmentId{
+					Id:                getPTR[string](fa.AttachmentId.Id),
+					RootItemChangeKey: getPTR[string](fa.AttachmentId.RootItemChangeKey),
+					RootItemId:        getPTR[string](fa.AttachmentId.RootItemId),
+				}
+			}
+
+			var contentType *schema.ContentType
+			if fa.ContentType != "" {
+				contentType = &schema.ContentType{TEXT: fa.ContentType}
+			}
+
+			content := base64.StdEncoding.EncodeToString(fa.Content)
+			attachments.FileAttachment = append(
+				attachments.FileAttachment,
+				&schema.FileAttachment{
+					AttachmentId:   attachmentId,
+					Name:           &schema.NameAttachmentType{TEXT: fa.Name},
+					ContentType:    contentType,
+					Size:           &schema.Size{TEXT: fa.Size},
+					IsInline:       &schema.IsInline{TEXT: false},
+					IsContactPhoto: &schema.IsContactPhoto{TEXT: false},
+					Content:        &schema.Content{TEXT: content},
+				})
+		}
 	}
 
 	message := &schema.Message{
@@ -273,31 +310,10 @@ func (c *client) SendEmail(param SendEmailParams) error {
 			},
 		},
 		ToRecipients:  to,
-		CcRecipients:  cc[0],
-		BccRecipients: bcc[0],
+		CcRecipients:  cc,
+		BccRecipients: bcc,
+		Attachments:   attachments,
 	}
-
-	/*
-		if len(param.FileAttachments) > 0 {
-			m.Attachments = &TAttachments{}
-			for _, attachment := range param.FileAttachments {
-				content := base64.StdEncoding.EncodeToString(attachment.Content)
-				m.Attachments.Files = append(m.Attachments.Files,
-					FileAttachment{
-						AttachmentId:     attachment.AttachmentId,
-						Name:             attachment.Name,
-						ContentType:      attachment.ContentType,
-						ContentId:        "",
-						ContentLocation:  "",
-						Size:             attachment.Size,
-						LastModifiedTime: "",
-						IsInline:         false,
-						IsContactPhoto:   false,
-						Content:          content,
-					})
-			}
-		}
-	*/
 
 	item := &schema.CreateItem{
 		MessageDisposition: getPTR[string]("SendAndSaveCopy"),

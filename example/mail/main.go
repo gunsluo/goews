@@ -20,12 +20,12 @@ func main() {
 		log.Fatal("->: ", err.Error())
 	}
 
-	// filename := "a.txt"
+	filename := "a.txt"
 	// content, err := os.ReadFile(filename)
 	// if err != nil {
 	// 	log.Fatal("read file: ", err.Error())
 	// }
-	// content := []byte("content")
+	content := []byte("content")
 
 	htmlBody := `<!DOCTYPE html>
 		<html lang="en">
@@ -40,20 +40,26 @@ func main() {
 	err = c.SendEmail(
 		goews.SendEmailParams{
 			From:     "email@exchangedomain",
-			To:       []string{"ji.luo@target-energysolutions.com"},
-			Cc:       []string{"junkun.ren@target-energysolutions.com"},
-			Bcc:      []string{"Dongsheng.liu@target-energysolutions.com"},
+			To:       []string{"ji.luo@target-energysolutions.com", "ji.luo1@target-energysolutions.com"},
+			Cc:       []string{"junkun.ren@target-energysolutions.com", "junkun.ren1@target-energysolutions.com"},
+			Bcc:      []string{"Dongsheng.liu@target-energysolutions.com", "Dongsheng.liu1@target-energysolutions.com"},
 			Subject:  "An email subject",
 			Body:     htmlBody,
 			BodyType: schema.BodyTypeHTML,
-			// FileAttachments: []goews.AttachmentParams{
-			// 	{
-			// 		Name:        filename,
-			// 		ContentType: "",
-			// 		Size:        int64(len(content)),
-			// 		Content:     content,
-			// 	},
-			// },
+			FileAttachments: []goews.FileAttachment{
+				{
+					Name:        filename,
+					ContentType: "",
+					Size:        int64(len(content)),
+					Content:     content,
+				},
+				{
+					Name:        "b.txt",
+					ContentType: "",
+					Size:        int64(len(content)),
+					Content:     content,
+				},
+			},
 		})
 	if err != nil {
 		log.Fatal("err>: ", err.Error())

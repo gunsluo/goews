@@ -8,9 +8,9 @@ type Attachments struct {
 	XMLName xml.Name
 
 	// The FileAttachment element represents a file that is attached to an item in the Exchange store.
-	FileAttachment *FileAttachment `xml:"FileAttachment"`
+	FileAttachment []*FileAttachment `xml:"FileAttachment"`
 	// The ItemAttachment element represents an Exchange item that is attached to another Exchange item.
-	ItemAttachment *ItemAttachment `xml:"ItemAttachment"`
+	ItemAttachment []*ItemAttachment `xml:"ItemAttachment"`
 }
 
 func (A *Attachments) SetForMarshal() {

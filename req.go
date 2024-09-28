@@ -13,27 +13,19 @@ type SendEmailParams struct {
 	Body     string
 	BodyType string
 
-	// FileAttachments []AttachmentParams
+	FileAttachments []FileAttachment
 }
 
-// type AttachmentParams struct {
-// 	AttachmentId AttachmentId
-// 	Name         string
-// 	ContentType  string
-// 	Size         int64
-// 	Content      []byte
-// }
-//
-// type GetFolderParams struct {
-// 	FolderId  string
-// 	BaseShape BaseShape
-// }
-//
-// type QueryMessageParams struct {
-// 	FolderId  string
-// 	StartTime time.Time
-// 	EndTime   time.Time
-// 	Limit     int
-// 	Offset    int
-// 	BodyType  string
-// }
+type FileAttachment struct {
+	AttachmentId *AttachmentId
+	Name         string
+	ContentType  string
+	Size         int64
+	Content      []byte
+}
+
+type AttachmentId struct {
+	Id                string
+	RootItemId        string
+	RootItemChangeKey string
+}

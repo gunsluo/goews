@@ -8,7 +8,7 @@ type CcRecipients struct {
 	XMLName xml.Name
 
 	// The Mailbox element identifies a mail-enabled Active Directory object.
-	Mailbox *Mailbox `xml:"Mailbox"`
+	Mailbox []*Mailbox `xml:"Mailbox"`
 }
 
 func (C *CcRecipients) SetForMarshal() {
