@@ -784,10 +784,14 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]Message, error) {
 				return nil, err
 			}
 
-			for _, itemMessage := range item.ResponseMessages.Items.Message {
-				if itemMessage.Body != nil {
-					message.Body = itemMessage.Body
-					break
+			if item.ResponseMessages != nil &&
+				item.ResponseMessages.GetItemResponseMessage != nil &&
+				item.ResponseMessages.GetItemResponseMessage.Items != nil {
+				for _, itemMessage := range item.ResponseMessages.GetItemResponseMessage.Items.Message {
+					if itemMessage.Body != nil {
+						message.Body = itemMessage.Body
+						break
+					}
 				}
 			}
 

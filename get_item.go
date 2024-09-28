@@ -53,7 +53,11 @@ type getGetItemResponseBody struct {
 
 type GetItemResponse struct {
 	// The GetItemResponseMessage element contains the status and result of a single GetItem operation request.
-	ResponseMessages *GetItemResponseMessage `xml:"GetItemResponseMessage"`
+	ResponseMessages *GetGetItemResponseMessages `xml:"ResponseMessages"`
+}
+
+type GetGetItemResponseMessages struct {
+	GetItemResponseMessage *GetItemResponseMessage `xml:"GetItemResponseMessage"`
 }
 
 type GetItemResponseMessage struct {
