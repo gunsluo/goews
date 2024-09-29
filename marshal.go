@@ -14,7 +14,6 @@ var (
 
 type EnvelopeRequest struct {
 	XMLName  xml.Name
-	Xsi      *Schema `xml:"xmlns:xsi,attr"`
 	Soap     *Schema `xml:"xmlns:soap,attr"`
 	Type     *Schema `xml:"xmlns:t,attr"`
 	Messages *Schema `xml:"xmlns:m,attr"`
@@ -77,7 +76,6 @@ func NewEnvelopeMarshal(body interface{}, schemas ...*Schema) (*EnvelopeRequest,
 		}
 	}
 	if len(schemas) == 0 {
-		res.Xsi = getPTR(SchemaXsi)
 		res.Type = getPTR(SchemaTypes)
 		res.Messages = getPTR(SchemaMessages)
 	}

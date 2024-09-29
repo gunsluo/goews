@@ -26,6 +26,7 @@ func main() {
 		StartTime: time.Now().Add(-1 * time.Hour),
 		Offset:    0,
 		Limit:     20,
+		BodyType:  schema.BodyTypeText,
 	})
 	if err != nil {
 		log.Fatal("err>: ", err.Error())

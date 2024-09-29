@@ -453,6 +453,11 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]*schema.Message, erro
 		resp.ResponseMessages.FindItemResponseMessage != nil &&
 		resp.ResponseMessages.FindItemResponseMessage.RootFolder != nil &&
 		resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items != nil {
+		var bodyType *schema.BodyType
+		if param.BodyType != "" {
+			bodyType = &schema.BodyType{TEXT: param.BodyType}
+		}
+
 		for _, message := range resp.ResponseMessages.FindItemResponseMessage.RootFolder.Items.Message {
 			if message.ItemId == nil {
 				return nil, errors.New("missing item id")
@@ -466,7 +471,7 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]*schema.Message, erro
 							{FieldURI: getPTR[string]("item:Body")},
 						},
 					},
-					BodyType: &schema.BodyType{TEXT: param.BodyType},
+					BodyType: bodyType,
 				},
 				ItemIds: &schema.ItemIds{
 					ItemId: &schema.ItemId{
