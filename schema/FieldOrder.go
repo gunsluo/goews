@@ -17,6 +17,11 @@ type FieldOrder struct {
 	Order *string `xml:"Order,attr"`
 }
 
+const (
+	OrderAscending  = "Ascending"
+	OrderDescending = "Descending"
+)
+
 func (F *FieldOrder) SetForMarshal() {
 	F.XMLName.Local = "t:FieldOrder"
 }

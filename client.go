@@ -435,6 +435,12 @@ func (c *client) QueryMessage(param QueryMessageParams) ([]*schema.Message, erro
 			Offset:             getPTR[string](strconv.Itoa(param.Offset)),
 			BasePoint:          getPTR[string](schema.BasePointBeginning),
 		},
+		SortOrder: &schema.SortOrder{
+			FieldOrder: &schema.FieldOrder{
+				Order:    getPTR[string](schema.OrderAscending),
+				FieldURI: &schema.FieldURI{FieldURI: getPTR[string]("item:DateTimeReceived")},
+			},
+		},
 		ParentFolderIds: &schema.ParentFolderIds{
 			DistinguishedFolderId: &schema.DistinguishedFolderId{
 				Id: getPTR[string](param.FolderId),
