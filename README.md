@@ -3,7 +3,7 @@ Exchange Web Service client for golang
 
 ### Usage:
 
-**Here's a reference **[example](./example)
+**Here's a reference** [example](./example)
 ```go
 package main
 
